@@ -1,0 +1,12 @@
+[project]
+name = "encryptionpoem"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cryptography>=46.0.3",
+    "matplotlib>=3.10.7",
+    "numpy>=2.3.4",
+    "tqdm>=4.67.1",
+]
