@@ -267,7 +267,7 @@ def encrypt_file_visual(filepath: str, password: str, delay=0.001, gui=False):
     with open(outpath,"w",encoding="utf-8") as f: f.write(token)
     print(f"**now unreadable** {outpath}")
 
-def decrypt_file_visual(filepath: str, password: str, delay=0.001, gui=False):
+def decrypt_file_visual(filepath: str, password: str, delay=0.01, gui=False):
     if not os.path.exists(filepath):
         sys.exit("encrypted file not found.")
     with open(filepath,"r",encoding="utf-8") as f: token=f.read().strip()
@@ -283,19 +283,19 @@ def main():
 
     p1 = sub.add_parser("encrypt", help="Encrypt plaintext")
     p1.add_argument("plaintext"); p1.add_argument("password")
-    p1.add_argument("--delay",type=float,default=0.001); p1.add_argument("--gui",action="store_true")
+    p1.add_argument("--delay",type=float,default=0.01); p1.add_argument("--gui",action="store_true")
 
     p2 = sub.add_parser("decrypt", help="Decrypt base64 token")
     p2.add_argument("token"); p2.add_argument("password")
-    p2.add_argument("--delay",type=float,default=0.001); p2.add_argument("--gui",action="store_true")
+    p2.add_argument("--delay",type=float,default=0.01); p2.add_argument("--gui",action="store_true")
 
     pf1 = sub.add_parser("encrypt-file", help="Encrypt a .txt file")
     pf1.add_argument("file"); pf1.add_argument("password")
-    pf1.add_argument("--delay",type=float,default=0.001); pf1.add_argument("--gui",action="store_true")
+    pf1.add_argument("--delay",type=float,default=0.01); pf1.add_argument("--gui",action="store_true")
 
     pf2 = sub.add_parser("decrypt-file", help="Decrypt a .enc file")
     pf2.add_argument("file"); pf2.add_argument("password")
-    pf2.add_argument("--delay",type=float,default=0.001); pf2.add_argument("--gui",action="store_true")
+    pf2.add_argument("--delay",type=float,default=0.01); pf2.add_argument("--gui",action="store_true")
 
     a = p.parse_args()
     if a.cmd=="encrypt": print(encrypt_visual(a.plaintext,a.password,a.delay,a.gui))
