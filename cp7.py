@@ -165,7 +165,7 @@ def decrypt_visual(token: str, password: str, delay=0.001, gui=False) -> str:
     final_plaintext_str = current_output.decode('utf-8')
     print(f"  {final_plaintext_str}") 
     
-    print("✅ **decryption successful**.\n")
+    print("**decryption c0mpl3t3**.\n")
     if gui: show_matplotlib_reveal(pt_bytes, ct, delay)
     return final_plaintext_str
 
