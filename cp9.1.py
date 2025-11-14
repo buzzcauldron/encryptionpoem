@@ -86,7 +86,7 @@ def show_matplotlib_reveal(plaintext: bytes, ciphertext: bytes, delay: float):
 
 # --- encryption / decryption core ---
 def encrypt_visual(plaintext: str, password: str, delay=0.001, gui=False) -> str:
-    print("=== **ENCRYPTING** (Randomized Line Order) ===")
+    print("=== **ENCRYPTING** ===")
     
     key = derive_key(password)
     print(f"**key derived**: '{key.decode()}' (Length: {len(key)})")
