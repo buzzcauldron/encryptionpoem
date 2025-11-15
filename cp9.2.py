@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 """
-cp9.py — now supports file encryption/decryption
+cp9.2.py — now supports file encryption/decryption with configurable print delay
 ---------------------------------------------------------
 Encrypt text or .txt files with human-visible visualization.
 NOTE: This version uses an INSECURE XOR cipher for visual demonstration purposes.
       It now also randomizes the line order during encryption.
+      Added --print-delay parameter to control printing animation speed.
 
 Examples:
-  # Encrypt plaintext
-  python cp9.py encrypt "Roses are red, Violets are blue.\nSugar is sweet, And so are you." mypassword
+  # Encrypt plaintext with slow printing
+  python cp9.2.py encrypt "Roses are red, Violets are blue.\nSugar is sweet, And so are you." mypassword --print-delay 0.1
 
-  # Encrypt file
-  python cp9.py encrypt-file poem.txt mypassword --delay 0.001
+  # Encrypt file with custom print delay
+  python cp9.2.py encrypt-file poem.txt mypassword --print-delay 0.05
 
   # Decrypt file
-  python cp9.py decrypt-file poem.txt.enc mypassword
+  python cp9.2.py decrypt-file poem.txt.enc mypassword --print-delay 0.01
 """
 
 import argparse, base64, os, sys, threading, time
@@ -85,12 +86,12 @@ def show_matplotlib_reveal(plaintext: bytes, ciphertext: bytes, delay: float):
 
 
 # --- encryption / decryption core ---
-def encrypt_visual(plaintext: str, password: str, delay=0.001, gui=False) -> str:
+def encrypt_visual(plaintext: str, password: str, print_delay=0.001, gui=False) -> str:
     print("=== **ENCRYPTING** ===")
     
     key = derive_key(password)
     print(f"**key derived**: '{key.decode()}' (Length: {len(key)})")
-    terminal_sleep(delay*4)
+    terminal_sleep(print_delay*4)
 
     # 1. Split and Prepare
     # FIX: Use splitlines(keepends=True) to preserve newlines
@@ -112,7 +113,7 @@ def encrypt_visual(plaintext: str, password: str, delay=0.001, gui=False) -> str
         # Print the line directly, with indentation. 
         # sys.stdout.write is used because 'line' already contains its own newline.
         sys.stdout.write(f"  {line}") 
-    terminal_sleep(delay * 10 * max(1, num_lines)) # Avoid 0 delay delay
+    terminal_sleep(print_delay * 10 * max(1, num_lines)) # Avoid 0 delay delay
     
     print("\n**the beast feeds** :")
     
@@ -163,7 +164,7 @@ def encrypt_visual(plaintext: str, password: str, delay=0.001, gui=False) -> str
             # Print the partially encrypted output, then carriage return
             line_out = line_output_array.decode('latin-1').rstrip(os.linesep)
             sys.stdout.write(f"\r  {line_out}")
-            terminal_sleep(delay * 2)
+            terminal_sleep(print_delay * 2)
             
         # Update the display array with the final encrypted line
         current_display_lines[shuffled_idx] = line_output_array.decode('latin-1')
@@ -176,7 +177,7 @@ def encrypt_visual(plaintext: str, password: str, delay=0.001, gui=False) -> str
         for i in range(shuffled_idx + 1, num_lines):
              sys.stdout.write(f"  {current_display_lines[i].rstrip(os.linesep)}\n")
         
-        terminal_sleep(delay * 10)
+        terminal_sleep(print_delay * 10)
         
     print("\n\n") # Clear space below the final output
     # --- END MODIFIED SECTION ---
@@ -193,13 +194,13 @@ def encrypt_visual(plaintext: str, password: str, delay=0.001, gui=False) -> str
     
     final_blob = map_bytes + SEPARATOR + ct_blob
     
-    if gui: show_matplotlib_reveal(plaintext.encode(), final_blob, delay)
+    if gui: show_matplotlib_reveal(plaintext.encode(), final_blob, print_delay)
     
     token = base64.urlsafe_b64encode(final_blob).decode()
     print("\n**a dream remains**.")
     return token
 
-def decrypt_visual(token: str, password: str, delay=0.001, gui=False) -> str:
+def decrypt_visual(token: str, password: str, print_delay=0.001, gui=False) -> str:
     print("=== **i unmask** ===")
     
     try:
@@ -225,10 +226,10 @@ def decrypt_visual(token: str, password: str, delay=0.001, gui=False) -> str:
         
     key = derive_key(password)
     print(f"**key derived**.")
-    terminal_sleep(delay*4)
+    terminal_sleep(print_delay*4)
     
     print("**feeding ciphertext**...")
-    terminal_sleep(delay*10)
+    terminal_sleep(print_delay*10)
 
     # Decrypt the entire blob 
     pt_blob = xor_crypt(ct_blob, key)
@@ -280,65 +281,75 @@ def decrypt_visual(token: str, password: str, delay=0.001, gui=False) -> str:
             
         line_out = current_output.decode('latin-1')
         sys.stdout.write(f"  {line_out}\r") 
-        terminal_sleep(delay) 
+        terminal_sleep(print_delay) 
 
     # Final result without carriage return
     print(f"  {pt_visual_bytes.decode('utf-8')}") 
     
     print("decryption successful.\n")
-    if gui: show_matplotlib_reveal(pt_visual_bytes, ct_blob, delay)
+    if gui: show_matplotlib_reveal(pt_visual_bytes, ct_blob, print_delay)
     return final_plaintext_str
 
-# --- new file-based functions (Delay set to default 0.001) ---
-def encrypt_file_visual(filepath: str, password: str, delay=0.001, gui=False):
+# --- new file-based functions (Print delay parameter for controlling printing speed) ---
+def encrypt_file_visual(filepath: str, password: str, print_delay=0.001, gui=False):
     if not os.path.exists(filepath):
         sys.exit("file not found.")
     with open(filepath,"r",encoding="utf-8") as f: text=f.read()
-    token = encrypt_visual(text, password, delay, gui)
+    token = encrypt_visual(text, password, print_delay, gui)
     outpath = filepath + ".enc"
     with open(outpath,"w",encoding="utf-8") as f: f.write(token)
     print(f"**now unreadable along this path** {outpath}")
 
-def decrypt_file_visual(filepath: str, password: str, delay=0.01, gui=False):
+def decrypt_file_visual(filepath: str, password: str, print_delay=0.01, gui=False):
     if not os.path.exists(filepath):
         sys.exit("encrypted file not found.")
     with open(filepath,"r",encoding="utf-8") as f: token=f.read().strip()
-    plaintext = decrypt_visual(token, password, delay, gui)
+    plaintext = decrypt_visual(token, password, print_delay, gui)
     outpath = filepath.replace(".enc",".decrypted.txt")
     if outpath == filepath: # Avoid overwriting if .enc wasn't present
         outpath = filepath + ".decrypted.txt"
     with open(outpath,"w",encoding="utf-8") as f: f.write(plaintext)
     print(f"**the truth is revealed here**: {outpath}")
 
-# --- CLI interface (Unchanged) ---
+# --- CLI interface with print-delay parameter ---
 def main():
-    p = argparse.ArgumentParser(description="Encrypt or decrypt text or files with visualization.")
+    p = argparse.ArgumentParser(description="Encrypt or decrypt text or files with visualization and configurable print delay.")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     p1 = sub.add_parser("encrypt", help="Encrypt plaintext")
     p1.add_argument("plaintext"); p1.add_argument("password")
-    p1.add_argument("--delay",type=float,default=0.01); p1.add_argument("--gui",action="store_true")
+    p1.add_argument("--print-delay", type=float, default=0.01, 
+                    help="Delay in seconds between print animations (higher = slower printing)")
+    p1.add_argument("--gui", action="store_true")
 
     p2 = sub.add_parser("decrypt", help="Decrypt base64 token")
     p2.add_argument("token"); p2.add_argument("password")
-    p2.add_argument("--delay",type=float,default=0.0023); p2.add_argument("--gui",action="store_true")
+    p2.add_argument("--print-delay", type=float, default=0.0023,
+                    help="Delay in seconds between print animations (higher = slower printing)")
+    p2.add_argument("--gui", action="store_true")
 
     pf1 = sub.add_parser("encrypt-file", help="Encrypt a .txt file")
     pf1.add_argument("file"); pf1.add_argument("password")
-    pf1.add_argument("--delay",type=float,default=0.023); pf1.add_argument("--gui",action="store_true")
+    pf1.add_argument("--print-delay", type=float, default=0.023,
+                     help="Delay in seconds between print animations (higher = slower printing)")
+    pf1.add_argument("--gui", action="store_true")
 
     pf2 = sub.add_parser("decrypt-file", help="Decrypt a .enc file")
     pf2.add_argument("file"); pf2.add_argument("password")
-    pf2.add_argument("--delay",type=float,default=0.0023); pf2.add_argument("--gui",action="store_true")
+    pf2.add_argument("--print-delay", type=float, default=0.0023,
+                     help="Delay in seconds between print animations (higher = slower printing)")
+    pf2.add_argument("--gui", action="store_true")
 
     a = p.parse_args()
-    if a.cmd=="encrypt": print(encrypt_visual(a.plaintext,a.password,a.delay,a.gui))
-    elif a.cmd=="decrypt": print(decrypt_visual(a.token,a.password,a.delay,a.gui))
-    elif a.cmd=="encrypt-file": encrypt_file_visual(a.file,a.password,a.delay,a.gui)
-    elif a.cmd=="decrypt-file": decrypt_file_visual(a.file,a.password,a.delay,a.gui)
+    if a.cmd=="encrypt": print(encrypt_visual(a.plaintext, a.password, a.print_delay, a.gui))
+    elif a.cmd=="decrypt": print(decrypt_visual(a.token, a.password, a.print_delay, a.gui))
+    elif a.cmd=="encrypt-file": encrypt_file_visual(a.file, a.password, a.print_delay, a.gui)
+    elif a.cmd=="decrypt-file": decrypt_file_visual(a.file, a.password, a.print_delay, a.gui)
 
 if __name__=="__main__":
     try: main()
     except KeyboardInterrupt:
         print("\n**excuse me?**")
         sys.exit(130)
+
+
