@@ -229,19 +229,19 @@ def main():
 
     p1 = sub.add_parser("encrypt", help="Encrypt plaintext")
     p1.add_argument("plaintext"); p1.add_argument("password")
-    p1.add_argument("--delay",type=float,default=0.05); p1.add_argument("--gui",action="store_true")
+    p1.add_argument("--delay",type=float,default=0.023); p1.add_argument("--gui",action="store_true")
 
     p2 = sub.add_parser("decrypt", help="Decrypt base64 token")
     p2.add_argument("token"); p2.add_argument("password")
-    p2.add_argument("--delay",type=float,default=0.05); p2.add_argument("--gui",action="store_true")
+    p2.add_argument("--delay",type=float,default=0.023); p2.add_argument("--gui",action="store_true")
 
     pf1 = sub.add_parser("encrypt-file", help="Encrypt a .txt file")
     pf1.add_argument("file"); pf1.add_argument("password")
-    pf1.add_argument("--delay",type=float,default=0.05); pf1.add_argument("--gui",action="store_true")
+    pf1.add_argument("--delay",type=float,default=0.023); pf1.add_argument("--gui",action="store_true")
 
     pf2 = sub.add_parser("decrypt-file", help="Decrypt a .enc file")
     pf2.add_argument("file"); pf2.add_argument("password")
-    pf2.add_argument("--delay",type=float,default=0.05); pf2.add_argument("--gui",action="store_true")
+    pf2.add_argument("--delay",type=float,default=0.023); pf2.add_argument("--gui",action="store_true")
 
     a = p.parse_args()
     if a.cmd=="encrypt": print(encrypt_visual(a.plaintext,a.password,a.delay,a.gui))
