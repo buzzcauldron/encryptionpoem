@@ -16,7 +16,6 @@ Examples:
 """
 
 import argparse, base64, os, sys, threading, time
-from typing import Optional
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -24,12 +23,13 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 # optional extras
 try:
     from tqdm import tqdm
-except Exception:
+except ImportError:
     tqdm = None
 try:
-    import matplotlib.pyplot as plt, numpy as np
+    import matplotlib.pyplot as plt
+    import numpy as np
     MATPLOTLIB_AVAILABLE = True
-except Exception:
+except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
 # --- constants ---
@@ -126,8 +126,16 @@ def encrypt_visual(plaintext: str, password: str, delay=0.05, gui=False) -> str:
 
 def decrypt_visual(token: str, password: str, delay=0.05, gui=False) -> str:
     print("=== Decrypting (visual mode) ===")
-    blob = base64.urlsafe_b64decode(token)
-    salt,nonce,ct = blob[:SALT_SIZE], blob[SALT_SIZE:SALT_SIZE+NONCE_SIZE], blob[SALT_SIZE+NONCE_SIZE:]
+    try:
+        blob = base64.urlsafe_b64decode(token)
+    except Exception:
+        sys.exit("❌ Wrong password or corrupted file.")
+    min_len = SALT_SIZE + NONCE_SIZE + 16  # GCM auth tag
+    if len(blob) < min_len:
+        sys.exit("❌ Wrong password or corrupted file.")
+    salt = blob[:SALT_SIZE]
+    nonce = blob[SALT_SIZE:SALT_SIZE+NONCE_SIZE]
+    ct = blob[SALT_SIZE+NONCE_SIZE:]
     print(f"Salt: {salt.hex()}\nNonce: {nonce.hex()}\n")
     terminal_sleep(delay*4)
     print("Deriving key...")
@@ -158,7 +166,7 @@ def decrypt_file_visual(filepath: str, password: str, delay=0.05, gui=False):
         sys.exit("Encrypted file not found.")
     with open(filepath,"r",encoding="utf-8") as f: token=f.read().strip()
     plaintext = decrypt_visual(token, password, delay, gui)
-    outpath = filepath.replace(".enc",".decrypted.txt")
+    outpath = (filepath[:-4] + ".decrypted.txt") if filepath.endswith(".enc") else (filepath + ".decrypted.txt")
     with open(outpath,"w",encoding="utf-8") as f: f.write(plaintext)
     print(f"✅ Decrypted text written to {outpath}")
 

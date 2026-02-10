@@ -16,7 +16,6 @@ Examples:
 """
 
 import argparse, base64, os, sys, threading, time
-from typing import Optional
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -24,12 +23,13 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 # optional extras
 try:
     from tqdm import tqdm
-except Exception:
+except ImportError:
     tqdm = None
 try:
-    import matplotlib.pyplot as plt, numpy as np
+    import matplotlib.pyplot as plt
+    import numpy as np
     MATPLOTLIB_AVAILABLE = True
-except Exception:
+except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
 # --- constants ---
